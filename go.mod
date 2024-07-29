@@ -1,4 +1,4 @@
-module github.com/kociumba/skyDriver
+module github.com/kociumba/SkyDriver
 
 go 1.22.5
 

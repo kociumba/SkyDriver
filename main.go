@@ -4,8 +4,8 @@ import (
 	"sort"
 
 	"github.com/charmbracelet/log"
-	"github.com/kociumba/skyDriver/api"
-	"github.com/kociumba/skyDriver/env"
+	"github.com/kociumba/SkyDriver/api"
+	"github.com/kociumba/SkyDriver/env"
 )
 
 var (
