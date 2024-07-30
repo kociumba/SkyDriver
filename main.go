@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/kociumba/SkyDriver/api"
-	"github.com/kociumba/SkyDriver/env"
 	"github.com/kociumba/SkyDriver/styles"
 )
 
@@ -27,7 +26,7 @@ var (
 )
 
 func main() {
-	env.LoadEnv()
+	// env.LoadEnv()
 
 	// huh.NewInput().Suggestions(products).Value(&product).Run()
 
