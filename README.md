@@ -18,7 +18,7 @@ SkyDriver generates a detailed breakdown of bazaar data sourced from the Hypixel
 The current output format is as follows:
 
 - Command:
-```bash
+```shell
 SkyDriver -limit 10000
 ```
 

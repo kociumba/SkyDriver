@@ -1,8 +1,5 @@
 name: main
 
-# This workflow takes place of tests.yml and release.yml
-# This is essentially the same but written as a parallel job for each system to test where tests pass
-
 on:
     push:
       branches: [ "main" ] # Triggers on pushes to main
@@ -20,7 +17,7 @@ jobs:
             {name: linux, os: ubuntu-latest,},
             {name: windows, os: windows-latest,},
             ]
-    runs-on: ${{ matrix.testAndBuild.os }}
+    runs-on: ${{ matrix.build.os }}
 
     steps:
       - name: Checkout
@@ -32,3 +29,36 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.22.5
+
+      - name: Build
+        run: make r
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: SkyDriver-${{ matrix.build.name }}
+          path: ./build/SkyDriver-${{ matrix.build.name }}
+
+  Release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: SkyDriver-*
+          path: ./artifacts/
+
+      - name: Release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/SkyDriver*
+          generate_release_notes: true
