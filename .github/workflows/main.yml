@@ -47,7 +47,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: SkyDriver-*
+          name: SkyDriver*
           path: ./artifacts/
 
       - name: Release asset
