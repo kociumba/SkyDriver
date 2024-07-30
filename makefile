@@ -6,7 +6,11 @@ b: generate
 
 r: generate
 	go mod tidy
-	go build -o ./build -ldflags="-s -w"
+	@if [ -n "$(system)" ]; then \
+	go build -o ./build/SkyDriver-$(system) -ldflags="-s -w" \
+	else \
+	go build -o ./build -ldflags="-s -w" \
+	fi
 
 # pass limit when executing from make couse I'm lazy
 run: b

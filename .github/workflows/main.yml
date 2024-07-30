@@ -31,7 +31,7 @@ jobs:
           go-version: 1.22.5
 
       - name: Build
-        run: make r
+        run: make r system=${{ matrix.build.name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
