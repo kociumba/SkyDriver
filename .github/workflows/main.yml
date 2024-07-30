@@ -1,0 +1,34 @@
+name: main
+
+# This workflow takes place of tests.yml and release.yml
+# This is essentially the same but written as a parallel job for each system to test where tests pass
+
+on:
+    push:
+      branches: [ "main" ] # Triggers on pushes to main
+      tags: [ "v*" ] # Triggers on any tag with the prefix 'v'
+    pull_request:
+      branches: [ "main" ] # Triggers on pull requests
+# Create a strategy matrix and define the runner systems there
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [ 
+            {name: linux, os: ubuntu-latest,},
+            {name: windows, os: windows-latest,},
+            ]
+    runs-on: ${{ matrix.testAndBuild.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            submodules: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.22.5
