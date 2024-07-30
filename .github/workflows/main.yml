@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: SkyDriver-${{ matrix.build.name }}
-          path: ./build/SkyDriver-${{ matrix.build.name }}
+          path: ./build/SkyDriver-${{ matrix.build.name }}*
 
   Release:
     needs: build
