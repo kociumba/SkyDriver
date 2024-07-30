@@ -1,15 +1,20 @@
-# https://www.gnu.org/software/make/manual/html_node/Syntax-of-Makefiles.html
-
 all: b
 
-b:
+b: generate
 	go mod tidy
 	go build -o ./build
 
-r:
+r: generate
 	go mod tidy
 	go build -o ./build -ldflags="-s -w"
 
+# pass limit when executing from make couse I'm lazy
 run: b
-	./build/skyDriver
+	@if [ -n "$(limit)" ]; then \
+		./build/skyDriver -limit $(limit); \
+	else \
+		./build/skyDriver; \
+	fi
 
+generate:
+	go run github.com/tc-hib/go-winres@latest make
