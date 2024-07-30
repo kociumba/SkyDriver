@@ -47,8 +47,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: SkyDriver*
           path: ./artifacts/
+
+      - name: Display structure of downloaded files
+        run: ls -R
 
       - name: Release asset
         if: startsWith(github.ref, 'refs/tags/')
