@@ -7,9 +7,14 @@ b: generate
 r: generate
 	go mod tidy
 	@if [ -n "$(system)" ]; then \
-	go build -o ./build/SkyDriver-$(system) -ldflags="-s -w" \
+		if [ "$(system)" = "windows" ]; then \
+			go build -o ./build/SkyDriver-$(system).exe -ldflags="-s -w"; \
+		else \
+			go build -o ./build/SkyDriver-$(system) -ldflags="-s -w"; \
+		fi; \
 	else \
-	go build -o ./build -ldflags="-s -w" \
+		echo "No system specified"; \
+		exit 1; \
 	fi
 
 # pass limit when executing from make couse I'm lazy
