@@ -62,5 +62,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/SkyDriver*
+            artifacts/SkyDriver-windows/*
+            artifacts/SkyDriver-linux/*
           generate_release_notes: true
