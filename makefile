@@ -5,25 +5,17 @@ b: generate
 	go build -o ./build
 
 r: generate
-	go mod tidy
-	@if [ -n "$(system)" ]; then \
-		if [ "$(system)" = "windows" ]; then \
-			go build -o ./build/SkyDriver-$(system).exe -ldflags="-s -w"; \
-		else \
-			go build -o ./build/SkyDriver-$(system) -ldflags="-s -w"; \
-		fi; \
-	else \
+	@if [ -z "$(system)" ]; then \
 		echo "No system specified"; \
 		exit 1; \
-	fi
+	fi; \
+	out=build/SkyDriver-$(system); \
+	[ "$(system)" = "windows" ] && out=$${out}.exe; \
+	go build -o $${out} -ldflags="-s -w"
 
 # pass limit when executing from make couse I'm lazy
 run: b
-	@if [ -n "$(limit)" ]; then \
-		./build/skyDriver -limit $(limit); \
-	else \
-		./build/skyDriver; \
-	fi
+	./build/skyDriver $(if $(limit),-limit $(limit),) $(if $(sell),-sell $(sell),)
 
 generate:
 	go run github.com/tc-hib/go-winres@latest make

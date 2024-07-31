@@ -18,7 +18,7 @@ SkyDriver generates a detailed breakdown of bazaar data sourced from the Hypixel
 The current output format is as follows:
 
 - Command:
-```shell
+```console
 SkyDriver -limit 10000
 ```
 
@@ -47,6 +47,18 @@ As you may have noticed, there is a price limit feature that can be enforced. Th
 To use SkyDriver, download the latest release from the [releases](https://github.com/kociumba/SkyDriver/releases).
 You can run SkyDriver to retrieve a list of the 10 products with the highest price differences, or use the `-limit` option to filter items within your flipping budget.
 
+There is also `-sell (amount of sells per week)` this essentially filters all items that have less sales per week than the specified value.
+
+```console
+SkyDriver -limit 100000 -sell 10000
+```
+
+This command will show the list of 10 products with the highest price differences up to the sell price of 100000 and have more than 10000 sales per week.
+
+> [!NOTE]
+> SkyDriver filters items that have less than 100 buy and sell price, as well as items that are sold less than 10 times a week.
+
+
 ## FAQ (not actually because this has 0 users 😭)
 
 **Q:** Why? <br>
@@ -57,5 +69,5 @@ You can run SkyDriver to retrieve a list of the 10 products with the highest pri
 
 **Q:** How do I [blank]? <br>
 **A:** If you are having trouble with using SkyDriver, read any 
-resource out there on cli apps and if you go past opening the app and your issues persists, 
+resource out there on cli apps and if you get past opening the app and your issues persists, 
 please [open an issue](https://github.com/kociumba/SkyDriver/issu.es/new/choose)

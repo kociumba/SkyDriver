@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"reflect"
 	"sort"
 
 	"github.com/charmbracelet/lipgloss"
@@ -22,7 +23,8 @@ var (
 		Bold(true).
 		Align(lipgloss.Center)
 
-	priceLimit = flag.Float64("limit", 1e+24, "price limit")
+	priceLimit      = flag.Float64("limit", 1e+32, "price limit")
+	weeklySellLimit = flag.Float64("sell", 1e+32, "price limit")
 )
 
 func main() {
@@ -36,12 +38,14 @@ func main() {
 
 	// log.Info("Products:", "resp", products.Products)
 
+	// The great filter
 	for _, v := range products.Products {
 		if v.QuickStatus.BuyPrice > 100 &&
 			v.QuickStatus.SellPrice > 100 &&
-			v.QuickStatus.SellMovingWeek > 100 &&
-			v.QuickStatus.BuyMovingWeek > 100 &&
-			v.QuickStatus.BuyPrice < *priceLimit {
+			v.QuickStatus.SellMovingWeek > 10 &&
+			v.QuickStatus.BuyMovingWeek > 10 &&
+			v.QuickStatus.BuyPrice < *priceLimit &&
+			float64(v.QuickStatus.SellMovingWeek) > *weeklySellLimit {
 			best = updateBest(best, v)
 		}
 	}
@@ -50,7 +54,14 @@ func main() {
 		Border(lipgloss.DoubleBorder()).
 		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#D8D8D8"))).
 		Headers(
-			"Product/"+styles.Faint.Render(fmt.Sprintf("price limit: %.2f ", *priceLimit)),
+			func() string {
+				// HACK: but works great tho xd
+				if DoNotRenderIfDefault(*priceLimit, 1e+32) == nil {
+					return styles.ProductStyle.Render("Product")
+				} else {
+					return "Product/" + styles.Faint.Render(fmt.Sprintf("price limit: %.2f ", *priceLimit))
+				}
+			}(),
 			"SellPrice",
 			"BuyPrice",
 			"Difference",
@@ -64,8 +75,9 @@ func main() {
 		}
 	})
 
-	row := 1
+	row := 0
 	for _, v := range best {
+		row++
 		t.Row(
 			// HACK This is fucking stupid
 			styles.ProductStyle.Render(func() string {
@@ -98,8 +110,6 @@ func main() {
 			}(),
 			),
 		)
-
-		row++
 	}
 
 	fmt.Println(t.String())
@@ -137,4 +147,18 @@ func updateBest(best []api.Product, v api.Product) []api.Product {
 	})
 
 	return best
+}
+
+// NOTE: This is not needed
+// I could just use == but fuck it
+func DoNotRenderIfDefault(s, def interface{}) interface{} {
+	if s == nil || def == nil {
+		return nil
+	}
+
+	if reflect.DeepEqual(s, def) {
+		return nil
+	}
+
+	return s
 }
