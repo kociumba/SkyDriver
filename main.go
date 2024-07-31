@@ -8,7 +8,9 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"github.com/charmbracelet/log"
 	"github.com/kociumba/SkyDriver/api"
+	"github.com/kociumba/SkyDriver/internal"
 	"github.com/kociumba/SkyDriver/styles"
 )
 
@@ -25,6 +27,7 @@ var (
 
 	priceLimit      = flag.Float64("limit", 1e+32, "price limit")
 	weeklySellLimit = flag.Float64("sell", 1e+32, "price limit")
+	debug           = flag.Bool("dbg", false, "debug")
 )
 
 func main() {
@@ -33,6 +36,10 @@ func main() {
 	// huh.NewInput().Suggestions(products).Value(&product).Run()
 
 	flag.Parse()
+
+	if *debug {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	products := api.GetBazaar(product)
 
@@ -66,6 +73,7 @@ func main() {
 			"BuyPrice",
 			"Difference",
 			"Weekly Trafic",
+			"Prediction",
 		).StyleFunc(func(row, col int) lipgloss.Style {
 		switch {
 		case row == 0:
@@ -94,13 +102,13 @@ func main() {
 				fmt.Sprintf("%.2f", v.QuickStatus.BuyPrice),
 			),
 			styles.DiffStyle.Render(
-				fmt.Sprintf("%.2f", GetDiff(v)),
+				fmt.Sprintf("%.2f", internal.GetDiff(v)),
 			),
 			styles.WeeklychangeStyle.Render(func() string {
 				s, err := styles.EqualSpacingOnDividerFromInput(
 					fmt.Sprintf("Sell:%v |  Buy:%v", v.QuickStatus.SellMovingWeek, v.QuickStatus.BuyMovingWeek),
 					"|",
-					13,
+					14,
 				)
 				if err != nil {
 					return err.Error()
@@ -109,6 +117,16 @@ func main() {
 				}
 			}(),
 			),
+			func() string {
+				priceChange := internal.PredictPriceChange(v)
+				if priceChange > 0 {
+					return styles.PredictionUP.Render(fmt.Sprintf("▲ %.2f%%", priceChange))
+				} else if priceChange < 0 {
+					return styles.PredictionDown.Render(fmt.Sprintf("▼ %.2f%%", priceChange))
+				} else {
+					return styles.Faint.Render("N/A")
+				}
+			}(),
 		)
 	}
 
@@ -118,20 +136,16 @@ func main() {
 	// fmt.Println(outStyle.Render(result))
 }
 
-func GetDiff(p api.Product) float64 {
-	return -(p.QuickStatus.SellPrice - p.QuickStatus.BuyPrice)
-}
-
 func updateBest(best []api.Product, v api.Product) []api.Product {
-	diff := GetDiff(v)
+	diff := internal.GetDiff(v)
 
 	if len(best) < 10 {
 		best = append(best, v)
 	} else {
 		minIndex := 0
-		minDiff := GetDiff(best[minIndex])
+		minDiff := internal.GetDiff(best[minIndex])
 		for i := 1; i < len(best); i++ {
-			if currentDiff := GetDiff(best[i]); currentDiff < minDiff {
+			if currentDiff := internal.GetDiff(best[i]); currentDiff < minDiff {
 				minIndex = i
 				minDiff = currentDiff
 			}
@@ -143,7 +157,7 @@ func updateBest(best []api.Product, v api.Product) []api.Product {
 	}
 
 	sort.Slice(best, func(i, j int) bool {
-		return GetDiff(best[i]) > GetDiff(best[j])
+		return internal.GetDiff(best[i]) > internal.GetDiff(best[j])
 	})
 
 	return best
