@@ -13,9 +13,9 @@ This is how SkyDriver calculates the price rise or fall predictions without usin
 
     The average buying price $( P_{avg} )$ is calculated as:
 
-    ```math
-    P_{avg} = \frac{1}{n} \sum_{i=1}^{n} P_{buy,i}
-    ```
+    
+    $$P_{avg} = \frac{1}{n} \sum_{i=1}^{n} P_{buy,i}$$
+
 
     where $( P_{buy,i} )$ is the price per unit for each purchase and $( n )$ is the total number of purchases.
 
@@ -23,9 +23,9 @@ This is how SkyDriver calculates the price rise or fall predictions without usin
 
     The price change $( PC )$ in percentage is given by:
 
-    ```math
-    PC = \frac{P_{sell} - P_{avg}}{P_{avg}} \times 100
-    ```
+    
+    $$PC = \frac{P_{sell} - P_{avg}}{P_{avg}} \times 100$$
+    
 
     where $( P_{sell} )$ is the current selling price.
 
@@ -33,9 +33,8 @@ This is how SkyDriver calculates the price rise or fall predictions without usin
 
     The market trend $( MT )$ in percentage is calculated as:
 
-    ```math
-    MT = \frac{V_{sell} - V_{buy}}{V_{buy}} \times 100
-    ```
+    
+    $$MT = \frac{V_{sell} - V_{buy}}{V_{buy}} \times 100$$
 
     where $( V_{sell} )$ is the selling volume and $( V_{buy} )$ is the buying volume.
 
@@ -43,9 +42,8 @@ This is how SkyDriver calculates the price rise or fall predictions without usin
 
     The predicted price change $( P_{pred} )$ is computed by averaging the price change and the market trend:
 
-    ```math
-    P_{pred} = \frac{PC + MT}{2}
-    ```
+    $$P_{pred} = \frac{PC + MT}{2}$$
+
 
     This is a pretty rough prediction that doesn not account for any historical data or current events in the market.
     
