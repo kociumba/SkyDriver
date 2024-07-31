@@ -44,7 +44,7 @@ type QuickStatus struct {
 	BuyOrders      int     `json:"buyOrders"`
 }
 
-func GetBazaar(product string) Bazaar {
+func GetBazaar() Bazaar {
 	// Construct the URL with the uuid and the environment variable KEY
 	url := "https://api.hypixel.net/v2/skyblock/bazaar"
 

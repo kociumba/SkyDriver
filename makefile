@@ -15,7 +15,7 @@ r: generate
 
 # pass limit when executing from make couse I'm lazy
 run: b
-	./build/skyDriver $(if $(limit),-limit $(limit),) $(if $(sell),-sell $(sell),) $(if $(dbg),-dbg,) $(if $(dbg),true,)
+	./build/skyDriver $(if $(limit),-limit $(limit),) $(if $(sell),-sell $(sell),) $(if $(dbg),-dbg,) $(if $(dbg),true,) $(if $(search), -search $(search),) $(if $(skip),-skip,) $(if $(skip),true,)
 
 generate:
 	go run github.com/tc-hib/go-winres@latest make

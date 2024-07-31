@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 
+	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/huh/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/charmbracelet/log"
@@ -14,10 +18,18 @@ import (
 	"github.com/kociumba/SkyDriver/styles"
 )
 
-var (
-	product string
+const (
+	MinPrice          = 100
+	MinWeeklyVolume   = 10
+	MaxDisplayedItems = 10
+)
 
-	best = make([]api.Product, 0, 10)
+var (
+	// best = make([]api.Product, 0, 10)
+
+	err error
+
+	products api.Bazaar
 
 	HeaderStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#E2E2E2")).
@@ -25,9 +37,11 @@ var (
 		Bold(true).
 		Align(lipgloss.Center)
 
-	priceLimit      = flag.Float64("limit", 1e+32, "price limit")
-	weeklySellLimit = flag.Float64("sell", 1e+32, "price limit")
-	debug           = flag.Bool("dbg", false, "debug")
+	priceLimit      = flag.Float64("limit", 1e+32, "Set the maximum price to display")
+	weeklySellLimit = flag.Float64("sell", 1e+32, "Set the minimum weekly volume of sales to display")
+	debug           = flag.Bool("dbg", false, "")
+	search          = flag.String("search", "", "Search using product names")
+	skip            = flag.Bool("skip", false, "Skip the prompts\n\nI know what I'm doing 😎")
 )
 
 func main() {
@@ -41,23 +55,110 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	products := api.GetBazaar(product)
+	products = api.GetBazaar()
 
-	// log.Info("Products:", "resp", products.Products)
+	PromptForInput()
 
-	// The great filter
-	for _, v := range products.Products {
-		if v.QuickStatus.BuyPrice > 100 &&
-			v.QuickStatus.SellPrice > 100 &&
-			v.QuickStatus.SellMovingWeek > 10 &&
-			v.QuickStatus.BuyMovingWeek > 10 &&
-			v.QuickStatus.BuyPrice < *priceLimit &&
-			float64(v.QuickStatus.SellMovingWeek) > *weeklySellLimit {
-			best = updateBest(best, v)
+	best := filterAndSortProducts(products.Products)
+
+	displayResults(best)
+}
+
+func PromptForInput() {
+	if *priceLimit == 1e+32 && !*skip {
+		var temp string
+		huh.NewInput().Value(&temp).Title("Limit the maximum price").Run()
+		*priceLimit, err = strconv.ParseFloat(temp, 64)
+		if err != nil && *priceLimit == 0 {
+			*priceLimit = 1e+32
 		}
 	}
 
-	t := table.New().
+	if *weeklySellLimit == 1e+32 && !*skip {
+		var temp string
+		huh.NewInput().Value(&temp).Title("Set the minimum amount of sold items in the las 7 days").Run()
+		*weeklySellLimit, err = strconv.ParseFloat(temp, 64)
+		if err != nil {
+			*weeklySellLimit = 1e+32
+		}
+	}
+
+	if *search == "" && !*skip {
+		var suggestions []string
+		for id := range products.Products {
+			suggestions = append(suggestions, id)
+		}
+		huh.NewInput().Suggestions(suggestions).Title("Search for a product").Value(search).Run()
+	}
+}
+
+// NOTE: This is not needed
+// I could just use == but fuck it
+func DoNotRenderIfDefault(s, def interface{}) interface{} {
+	if s == nil || def == nil {
+		return nil
+	}
+
+	if reflect.DeepEqual(s, def) {
+		return nil
+	}
+
+	return s
+}
+
+func filterAndSortProducts(products map[string]api.Product) []api.Product {
+	var filtered []api.Product
+	for _, v := range products {
+		if isProductEligible(v) {
+			filtered = append(filtered, v)
+		}
+	}
+
+	sort.Slice(filtered, func(i, j int) bool {
+		return internal.GetDiff(filtered[i]) > internal.GetDiff(filtered[j])
+	})
+
+	if len(filtered) > MaxDisplayedItems {
+		filtered = filtered[:MaxDisplayedItems]
+	}
+
+	return filtered
+}
+
+// The great filter v2
+func isProductEligible(p api.Product) bool {
+	if *search != "" {
+		if !strings.Contains(strings.ToLower(p.ProductID), strings.ToLower(*search)) {
+			log.Debug("Skipping", "id", p.ProductID, "search", *search)
+			return false
+		}
+	}
+
+	if *search == "" {
+		return p.QuickStatus.BuyPrice > MinPrice &&
+			p.QuickStatus.SellPrice > MinPrice &&
+			p.QuickStatus.SellMovingWeek > MinWeeklyVolume &&
+			p.QuickStatus.BuyMovingWeek > MinWeeklyVolume &&
+			(p.QuickStatus.BuyPrice < *priceLimit || *priceLimit == 1e+32) &&
+			(float64(p.QuickStatus.SellMovingWeek) > *weeklySellLimit || *weeklySellLimit == 1e+32)
+	}
+
+	return (p.QuickStatus.BuyPrice != 0) &&
+		(p.QuickStatus.SellPrice != 0)
+}
+
+func displayResults(best []api.Product) {
+	spinner.New().Title("Crunching the data !").Run()
+
+	t := createTable()
+	for i, v := range best {
+		addRowToTable(t, i+1, v)
+	}
+	fmt.Println(t.String())
+}
+
+func createTable() *table.Table {
+	return table.New().
 		Border(lipgloss.DoubleBorder()).
 		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#D8D8D8"))).
 		Headers(
@@ -73,7 +174,7 @@ func main() {
 			"BuyPrice",
 			"Difference",
 			"Weekly Trafic",
-			"Prediction",
+			"Predicted/Confidence",
 		).StyleFunc(func(row, col int) lipgloss.Style {
 		switch {
 		case row == 0:
@@ -82,97 +183,49 @@ func main() {
 			return lipgloss.NewStyle()
 		}
 	})
-
-	row := 0
-	for _, v := range best {
-		row++
-		t.Row(
-			// HACK This is fucking stupid
-			styles.ProductStyle.Render(func() string {
-				if row < 10 {
-					return fmt.Sprintf("%v.  %v", row, v.ProductID)
-				} else {
-					return fmt.Sprintf("%v. %v", row, v.ProductID)
-				}
-			}()),
-			styles.SellPriceStyle.Render(
-				fmt.Sprintf("%.2f", v.QuickStatus.SellPrice),
-			),
-			styles.BuyPriceStyle.Render(
-				fmt.Sprintf("%.2f", v.QuickStatus.BuyPrice),
-			),
-			styles.DiffStyle.Render(
-				fmt.Sprintf("%.2f", internal.GetDiff(v)),
-			),
-			styles.WeeklychangeStyle.Render(func() string {
-				s, err := styles.EqualSpacingOnDividerFromInput(
-					fmt.Sprintf("Sell:%v |  Buy:%v", v.QuickStatus.SellMovingWeek, v.QuickStatus.BuyMovingWeek),
-					"|",
-					14,
-				)
-				if err != nil {
-					return err.Error()
-				} else {
-					return s
-				}
-			}(),
-			),
-			func() string {
-				priceChange := internal.PredictPriceChange(v)
-				if priceChange > 0 {
-					return styles.PredictionUP.Render(fmt.Sprintf("▲ %.2f%%", priceChange))
-				} else if priceChange < 0 {
-					return styles.PredictionDown.Render(fmt.Sprintf("▼ %.2f%%", priceChange))
-				} else {
-					return styles.Faint.Render("N/A")
-				}
-			}(),
-		)
-	}
-
-	fmt.Println(t.String())
-
-	// result := strings.Trim(out.String(), "\n")
-	// fmt.Println(outStyle.Render(result))
 }
 
-func updateBest(best []api.Product, v api.Product) []api.Product {
-	diff := internal.GetDiff(v)
-
-	if len(best) < 10 {
-		best = append(best, v)
-	} else {
-		minIndex := 0
-		minDiff := internal.GetDiff(best[minIndex])
-		for i := 1; i < len(best); i++ {
-			if currentDiff := internal.GetDiff(best[i]); currentDiff < minDiff {
-				minIndex = i
-				minDiff = currentDiff
+func addRowToTable(t *table.Table, i int, v api.Product) {
+	t.Row(
+		// HACK This is fucking stupid
+		styles.ProductStyle.Render(func() string {
+			if i < 10 {
+				return fmt.Sprintf("%v.  %v", i, v.ProductID)
+			} else {
+				return fmt.Sprintf("%v. %v", i, v.ProductID)
 			}
-		}
-
-		if diff > minDiff {
-			best[minIndex] = v
-		}
-	}
-
-	sort.Slice(best, func(i, j int) bool {
-		return internal.GetDiff(best[i]) > internal.GetDiff(best[j])
-	})
-
-	return best
-}
-
-// NOTE: This is not needed
-// I could just use == but fuck it
-func DoNotRenderIfDefault(s, def interface{}) interface{} {
-	if s == nil || def == nil {
-		return nil
-	}
-
-	if reflect.DeepEqual(s, def) {
-		return nil
-	}
-
-	return s
+		}()),
+		styles.SellPriceStyle.Render(
+			fmt.Sprintf("%.2f", v.QuickStatus.SellPrice),
+		),
+		styles.BuyPriceStyle.Render(
+			fmt.Sprintf("%.2f", v.QuickStatus.BuyPrice),
+		),
+		styles.DiffStyle.Render(
+			fmt.Sprintf("%.2f", internal.GetDiff(v)),
+		),
+		styles.WeeklychangeStyle.Render(func() string {
+			s, err := styles.EqualSpacingOnDividerFromInput(
+				fmt.Sprintf("Sell:%v |  Buy:%v", v.QuickStatus.SellMovingWeek, v.QuickStatus.BuyMovingWeek),
+				"|",
+				15,
+			)
+			if err != nil {
+				return err.Error()
+			} else {
+				return s
+			}
+		}(),
+		),
+		func() string {
+			prediction, confidence := internal.PredictPriceChange(v)
+			if prediction > 0 {
+				return styles.PredictionUP.Render(fmt.Sprintf("▲ %.2f/%.2f%%", prediction, confidence))
+			} else if prediction < 0 {
+				return styles.PredictionDown.Render(fmt.Sprintf("▼ %.2f/%.2f%%", prediction, confidence))
+			} else {
+				return styles.Faint.Render("N/A")
+			}
+		}(),
+	)
 }

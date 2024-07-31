@@ -5,50 +5,57 @@ in this format than in code.
 
 In other words if I fucked something up here please report it in [issues](https://github.com/kociumba/SkyDriver/issues/new/choose).
 
+If you do want to read the code for this it's in [internal/priceFluctuation.go](internal/priceFluctuation.go)
+
 ## Price Prediction Math
 
 This is how SkyDriver calculates the price rise or fall predictions without using historical bazaar data.
 
-- ### Average Buying Price
+- ### Price Spread $(PS)$
+    $$PS = \frac{sellPrice - buyPrice}{buyPrice} \times 100$$
 
-    The average buying price $( P_{avg} )$ is calculated as:
+    This gives us the percentage spread between the sell and buy prices.
 
-    
-    $$P_{avg} = \frac{1}{n} \sum_{i=1}^{n} P_{buy,i}$$
+- ### Volume Imbalance $(VI)$
+    $$VI = \frac{buyVolume - sellVolume}{buyVolume + sellVolume} \times 100$$
 
+    This measures the imbalance between buy and sell volumes.
 
-    where $( P_{buy,i} )$ is the price per unit for each purchase and $( n )$ is the total number of purchases.
+- ### Order Imbalance $(OI)$
+    $$OI = \frac{buyOrders - sellOrders}{buyOrders + sellOrders} \times 100$$
 
-- ### Price Change
+    This measures the imbalance between the number of buy and sell orders.
 
-    The price change $( PC )$ in percentage is given by:
+- ### Moving Week Trend $(MWT)$
+    $$MWT = \frac{buyMovingWeek - sellMovingWeek}{buyMovingWeek + sellMovingWeek} \times 100$$
 
-    
-    $$PC = \frac{P_{sell} - P_{avg}}{P_{avg}} \times 100$$
-    
+    This gives us a sense of the longer-term trend based on the past week's activity.
 
-    where $( P_{sell} )$ is the current selling price.
+- ### Top Order Book Pressure $(TOBP)$
+    Using the top 30 orders from buy_summary and sell_summary:
 
-- ### Market Trend
+    $$TOBP = \frac{\sum_{i=1}^{30} (buyAmount_i \times buyPrice_i) - \sum_{i=1}^{30} (sellAmount_i \times sellPrice_i)}{\sum_{i=1}^{30} (buyAmount_i \times buyPrice_i) + \sum_{i=1}^{30} (sellAmount_i \times sellPrice_i)} \times 100$$
 
-    The market trend $( MT )$ in percentage is calculated as:
+    This measures the pressure from the visible order book.
 
-    
-    $$MT = \frac{V_{sell} - V_{buy}}{V_{buy}} \times 100$$
+- ### Price Prediction Formula
+    Combine these factors with appropriate weights:
 
-    where $( V_{sell} )$ is the selling volume and $( V_{buy} )$ is the buying volume.
+    $$P_{pred} = w_1 \times PS + w_2 \times VI + w_3 \times OI + w_4 \times MWT + w_5 \times TOBP$$
 
-- ### Price Prediction
+    Where $w_1$, $w_2$, $w_3$, $w_4$, and $w_5$ are weights that sum to 1.
 
-    The predicted price change $( P_{pred} )$ is computed by averaging the price change and the market trend:
+- ### Interpretation
 
-    $$P_{pred} = \frac{PC + MT}{2}$$
+    A positive $P_{pred}$ suggests a potential price increase.
 
+    A negative $P_{pred}$ suggests a potential price decrease.
 
-    This is a pretty rough prediction that doesn not account for any historical data or current events in the market.
-    
-    So please never rely on it, for example while programming this the prediction for enchanted diamond blocks was 
-    <span style="color: limegreen;">
-    $▲ 20442.77%$ 
-    </span>
-    which is not very possible with a sell price of $200174.92$ and a buy price of $204504.24$, the discrapency came from there being almoast 2x more sells than buys with these numbers respectively $Sell=2093369, Buy=1097683$
+    The magnitude of $P_{pred}$ indicates the strength of the prediction.
+
+- ### Confidence Measure
+    We can create a simple confidence measure based on the consistency of our indicators:
+
+    $$Confidence = \frac{\text{Number of indicators with the same sign as } P_{pred}}{5} \times 100$$
+
+    This gives us a percentage confidence in our prediction.
