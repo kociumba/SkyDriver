@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	MinPrice          = 100
-	MinWeeklyVolume   = 10
-	MaxDisplayedItems = 10
+	MinPrice        = 100
+	MinWeeklyVolume = 10
+	// MaxDisplayedItems = 10
 )
 
 var (
@@ -37,11 +37,12 @@ var (
 		Bold(true).
 		Align(lipgloss.Center)
 
-	priceLimit      = flag.Float64("limit", 1e+32, "Set the maximum price to display")
-	weeklySellLimit = flag.Float64("sell", 1e+32, "Set the minimum weekly volume of sales to display")
-	debug           = flag.Bool("dbg", false, "")
-	search          = flag.String("search", "", "Search using product names")
-	skip            = flag.Bool("skip", false, "Skip the prompts\n\nI know what I'm doing 😎")
+	priceLimit        = flag.Float64("limit", 1e+32, "Set the maximum price to display")
+	weeklySellLimit   = flag.Float64("sell", 1e+32, "Set the minimum weekly volume of sales to display")
+	debug             = flag.Bool("dbg", false, "")
+	search            = flag.String("search", "", "Search using product names")
+	skip              = flag.Bool("skip", false, "Skip the prompts\n\nI know what I'm doing 😎")
+	MaxDisplayedItems = flag.Int("max", 10, "Set the maximum number of items to display")
 )
 
 func main() {
@@ -118,18 +119,21 @@ func filterAndSortProducts(products map[string]api.Product) []api.Product {
 		return internal.GetDiff(filtered[i]) > internal.GetDiff(filtered[j])
 	})
 
-	if len(filtered) > MaxDisplayedItems {
-		filtered = filtered[:MaxDisplayedItems]
+	if len(filtered) > *MaxDisplayedItems {
+		filtered = filtered[:*MaxDisplayedItems]
 	}
 
 	return filtered
 }
 
 // The great filter v2
+// BUG: Still apply the -limit and -sell flags when -search is used
 func isProductEligible(p api.Product) bool {
 	if *search != "" {
 		if !strings.Contains(strings.ToLower(p.ProductID), strings.ToLower(*search)) {
-			log.Debug("Skipping", "id", p.ProductID, "search", *search)
+			// log.Debug("Skipping", "id", p.ProductID, "search", *search)
+			// return (p.QuickStatus.BuyPrice < *priceLimit || *priceLimit == 1e+32) &&
+			// 	(float64(p.QuickStatus.SellMovingWeek) > *weeklySellLimit || *weeklySellLimit == 1e+32)
 			return false
 		}
 	}
@@ -152,7 +156,7 @@ func displayResults(best []api.Product) {
 
 	t := createTable()
 	for i, v := range best {
-		addRowToTable(t, i+1, v)
+		addRowToTable(t, i+1, v, len(best))
 	}
 	fmt.Println(t.String())
 }
@@ -174,7 +178,7 @@ func createTable() *table.Table {
 			"BuyPrice",
 			"Difference",
 			"Weekly Trafic",
-			"Predicted/Confidence",
+			"Profit(not in coins)/Confidence",
 		).StyleFunc(func(row, col int) lipgloss.Style {
 		switch {
 		case row == 0:
@@ -185,15 +189,12 @@ func createTable() *table.Table {
 	})
 }
 
-func addRowToTable(t *table.Table, i int, v api.Product) {
+func addRowToTable(t *table.Table, i int, v api.Product, length int) {
 	t.Row(
-		// HACK This is fucking stupid
 		styles.ProductStyle.Render(func() string {
-			if i < 10 {
-				return fmt.Sprintf("%v.  %v", i, v.ProductID)
-			} else {
-				return fmt.Sprintf("%v. %v", i, v.ProductID)
-			}
+			maxLen := len(fmt.Sprintf("%d", length)) // Calculate the number of digits in the max length
+
+			return fmt.Sprintf("%d.%*s%v", i, maxLen-len(fmt.Sprintf("%d", i))+1, "", v.ProductID)
 		}()),
 		styles.SellPriceStyle.Render(
 			fmt.Sprintf("%.2f", v.QuickStatus.SellPrice),

@@ -77,6 +77,16 @@ With the release of v0.0.4, you can now set these in the cli interface.
 If a value of the arguments is not passed, SkyDriver will prompt you to enter it in.
 This can be skipped by just leaving the prompts blank or passing the `-skip` flag.
 
+When searching for example for `flawless` all of the flawless gemstones will be considered, to display all 12
+use the `-max (number of items to display)` flag which let's you set the maximum number of items to display.
+
+<details>
+  <summary>Pro tip</summary>
+
+  run `SkyDriver -max 10000000` to show a very long table of all the items on the bazaar.
+
+</details>
+
 ## FAQ (not actually because this has 0 users 😭)
 
 **Q:** Why? <br>

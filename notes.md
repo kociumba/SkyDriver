@@ -12,9 +12,10 @@ If you do want to read the code for this it's in [internal/priceFluctuation.go](
 This is how SkyDriver calculates the price rise or fall predictions without using historical bazaar data.
 
 - ### Price Spread $(PS)$
-    $$PS = \frac{sellPrice - buyPrice}{buyPrice} \times 100$$
+    $$PS = \frac{buyPrice - sellPrice}{sellPrice} \times 100$$
 
-    This gives us the percentage spread between the sell and buy prices.
+    This gives us the percentage spread between the buy and sell prices.
+    This calculation assumes that the user will be flipping sell and buy orders.
 
 - ### Volume Imbalance $(VI)$
     $$VI = \frac{buyVolume - sellVolume}{buyVolume + sellVolume} \times 100$$
@@ -38,12 +39,34 @@ This is how SkyDriver calculates the price rise or fall predictions without usin
 
     This measures the pressure from the visible order book.
 
+- ### 6. Volume Factor (VF) [New]
+  
+    Let $V_{total} = buyMovingWeek + sellMovingWeek$
+
+    
+    1. **If the total volume is less than or equal to the low volume threshold  $V_{low}$**:
+
+        $$VF = -100$$
+
+    2. **If the total volume is greater than or equal to the high volume threshold $V_{high}$**:
+
+        $$VF = 100$$
+
+    3. **If the total volume is between the low volume threshold $V_{low}$ and the high volume threshold $V_{high}$**:
+    
+        $$VF = -100 + \left( \frac{V_{total} - V_{low}}{V_{high} - V_{low}} \right) \times 200$$
+  
+    Where:
+
+    $V_{low}$ is the low volume threshold
+    $V_{high}$ is the high volume threshold
+
 - ### Price Prediction Formula
     Combine these factors with appropriate weights:
 
-    $$P_{pred} = w_1 \times PS + w_2 \times VI + w_3 \times OI + w_4 \times MWT + w_5 \times TOBP$$
+    $$P_{pred} = w_1 \times PS + w_2 \times VI + w_3 \times OI + w_4 \times MWT + w_5 \times TOBP + w_6 \times VF$$
 
-    Where $w_1$, $w_2$, $w_3$, $w_4$, and $w_5$ are weights that sum to 1.
+    Where $w_1$, $w_2$, $w_3$, $w_4$, $w_5$, and $w_6$ are weights that sum to 1.
 
 - ### Interpretation
 
@@ -56,6 +79,6 @@ This is how SkyDriver calculates the price rise or fall predictions without usin
 - ### Confidence Measure
     We can create a simple confidence measure based on the consistency of our indicators:
 
-    $$Confidence = \frac{\text{Number of indicators with the same sign as } P_{pred}}{5} \times 100$$
+    $$Confidence = \frac{\text{Number of indicators with the same sign as } P_{pred}}{6} \times 100$$
 
     This gives us a percentage confidence in our prediction.
