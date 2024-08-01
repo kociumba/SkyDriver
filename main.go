@@ -178,7 +178,7 @@ func createTable() *table.Table {
 			"BuyPrice",
 			"Difference",
 			"Weekly Trafic",
-			"Profit(not in coins)/Confidence",
+			"Prediction/Confidence",
 		).StyleFunc(func(row, col int) lipgloss.Style {
 		switch {
 		case row == 0:

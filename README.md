@@ -18,7 +18,7 @@ SkyDriver is a companion application for Hypixel Skyblock, currently in early de
 > [!WARNING]
 > **Do not depend on the predictions.**
 > They are purely for providing broad insights into the market. <br>
-> Always do you own research before flipping lots of coins.
+> Always do your own research before flipping lots of coins.
 
 The primary focus of SkyDriver is on bazaar data and flipping, with plans for future expansion. If you have ideas or suggestions for improvements, please [open an issue](https://github.com/kociumba/SkyDriver/issues/new/choose).
 
@@ -56,16 +56,23 @@ SkyDriver -limit 100000 -sell 100000
 To use SkyDriver, download the latest release from the [releases](https://github.com/kociumba/SkyDriver/releases).
 You can run SkyDriver to retrieve a list of the 10 products with the highest price differences, or use the `-limit` option to filter items within your flipping budget.
 
-There is also `-sell (amount of sells per week)` this essentially filters all items that have less sales per week than the specified value.
+Use the `-sell` option followed by the number of sales per week to filter out items with fewer sales than specified.
 
-**New for v0.0.4**
-The `-search (part of an item name)` option can be used to search for items matching the name you provide.
+**New in v0.0.4**
+
+The `-search` option allows you to search for items by part of their name. For example, searching for flawless will include all items with "flawless" in their name. To display a specific number of items, use the `-max` flag to set the maximum number of items to display.
 
 ```console
-SkyDriver -limit 100000 -sell 10000 -search gold
+SkyDriver -search flawless -max 100
 ```
 
-This command will show the list of all products up to the sell price of 100000 and 10000 sales per week that contain the word "gold" in their name.
+This command will display up to 100 items that contain the word "flawless" in their name.
+
+```console
+SkyDriver -limit 10000000 -sell 100000 -max 100
+```
+
+This command will display the top 100 items that have more than 100,000 sales per week and a sell price below 10,000,000.
 
 > [!NOTE]
 > SkyDriver filters items that have less than 100 buy and sell price, as well as items that are sold less than 10 times a week.
@@ -77,13 +84,11 @@ With the release of v0.0.4, you can now set these in the cli interface.
 If a value of the arguments is not passed, SkyDriver will prompt you to enter it in.
 This can be skipped by just leaving the prompts blank or passing the `-skip` flag.
 
-When searching for example for `flawless` all of the flawless gemstones will be considered, to display all 12
-use the `-max (number of items to display)` flag which let's you set the maximum number of items to display.
-
 <details>
-  <summary>Pro tip</summary>
+  <summary>Pro tip 😎</summary>
 
-  run `SkyDriver -max 10000000` to show a very long table of all the items on the bazaar.
+> [!TIP]
+> Run `SkyDriver -max 10000000` to show a very long table of all the items on the bazaar.
 
 </details>
 
@@ -99,3 +104,9 @@ use the `-max (number of items to display)` flag which let's you set the maximum
 **A:** If you are having trouble with using SkyDriver, read any 
 resource out there on cli apps and if you get past opening the app and your issues persists, 
 please [open an issue](https://github.com/kociumba/SkyDriver/issu.es/new/choose)
+
+**Q:** What is the prediction? <br>
+**A:** The prediction comes from data collected through the bazaar API and helps you figure out if flipping an item will be profitable. If the prediction is positive, it means you're likely to make a profit; if it's negative, it's probably not worth it. The bigger the number, the higher the expected profit. Confidence shows how many of the seven internal indicators agree on whether the item will be profitable or not. For more info, check out the [model](notes.md)
+> [!CAUTION]
+> This model was made by me (a dumbass) and you should not soly rely on it.
+> If you loose all your coins because you bet on something SkyDriver said was going to be profitable, that's on you.
