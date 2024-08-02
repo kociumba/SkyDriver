@@ -4,6 +4,7 @@
 - [SkyDriver](#skydriver)
   - [Features](#features)
   - [Usage](#usage)
+  - [Examples](#examples)
   - [FAQ (not actually because this has 0 users 😭)](#faq-not-actually-because-this-has-0-users-)
 <!-- TOC -->
 
@@ -27,11 +28,13 @@ SkyDriver generates a detailed breakdown of bazaar data sourced from the Hypixel
 The current output format is as follows:
 
 - Command:
+
 ```console
 SkyDriver -limit 100000 -sell 100000
 ```
 
 - Output:
+  
 ```
 ╔═══════════════════════════════╦═════════╦════════╦══════════╦═══════════════════════════════╦════════════════════╗
 ║Product/price limit: 100000.00 ║SellPrice║BuyPrice║Difference║         Weekly Trafic         ║Predicted/Confidence║
@@ -62,11 +65,32 @@ Use the `-sell` option followed by the number of sales per week to filter out it
 
 The `-search` option allows you to search for items by part of their name. For example, searching for flawless will include all items with "flawless" in their name. To display a specific number of items, use the `-max` flag to set the maximum number of items to display.
 
+With the release of v0.0.4, you can now set these flags in the cli interface.
+
+If a value of the arguments is not passed, SkyDriver will prompt you to enter it in.
+This can be skipped by just leaving the prompts blank or passing the `-skip` flag.
+
+**New in v0.0.6**
+
+You can now use the `-json` flag to export results in JSON in this [schema](api/schema.json). This is all of the data shown in the normal table output.
+The output is in a human readable format and ready for processing in tools like [jq](https://stedolan.github.io/jq/).
+
+> [!TIP]
+> The `-json` flag disables the prompts so you will have to set the parameters using other flags.
+
+## Examples
+
 ```console
 SkyDriver -search flawless -max 100
 ```
 
 This command will display up to 100 items that contain the word "flawless" in their name.
+
+```console
+SkyDriver -json -search flawless -max 100 | jq '.results | length'
+```
+
+This command will pipe the output from SkyDriver into jq and return the number of search results found on the bazaar.
 
 ```console
 SkyDriver -limit 10000000 -sell 100000 -max 100
@@ -78,11 +102,6 @@ This command will display the top 100 items that have more than 100,000 sales pe
 > SkyDriver filters items that have less than 100 buy and sell price, as well as items that are sold less than 10 times a week.
 > 
 > This behaviour is turned off when searching and only items with 0 sell price and 0 buy price are filtered.
-
-With the release of v0.0.4, you can now set these in the cli interface.
-
-If a value of the arguments is not passed, SkyDriver will prompt you to enter it in.
-This can be skipped by just leaving the prompts blank or passing the `-skip` flag.
 
 <details>
   <summary>Pro tip 😎</summary>

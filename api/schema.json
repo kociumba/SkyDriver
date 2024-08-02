@@ -1,0 +1,87 @@
+{
+    "type": "object",
+    "properties": {
+        "limit": {
+            "type": "number"
+        },
+        "sell": {
+            "type": "number"
+        },
+        "search": {
+            "type": "string"
+        },
+        "max": {
+            "type": "integer"
+        },
+        "date": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "results": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Results"
+            }
+        }
+    },
+    "required": [
+        "limit",
+        "sell",
+        "search",
+        "max",
+        "date",
+        "results"
+    ],
+    "definitions": {
+        "Results": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "string"
+                },
+                "sell_price": {
+                    "type": "number"
+                },
+                "buy_price": {
+                    "type": "number"
+                },
+                "diff": {
+                    "type": "number"
+                },
+                "weekly_traffic": {
+                    "$ref": "#/definitions/WeeklyTraffic"
+                },
+                "prediction": {
+                    "type": "number"
+                },
+                "confidence": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "product_id",
+                "sell_price",
+                "buy_price",
+                "diff",
+                "weekly_traffic",
+                "prediction",
+                "confidence"
+            ]
+        },
+        "WeeklyTraffic": {
+            "type": "object",
+            "properties": {
+                "sell": {
+                    "type": "number"
+                },
+                "buy": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "sell",
+                "buy"
+            ]
+        }
+    }
+}

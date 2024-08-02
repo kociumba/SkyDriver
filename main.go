@@ -43,6 +43,7 @@ var (
 	search            = flag.String("search", "", "Search using product names")
 	skip              = flag.Bool("skip", false, "Skip the prompts\n\nI know what I'm doing 😎")
 	MaxDisplayedItems = flag.Int("max", 10, "Set the maximum number of items to display")
+	json              = flag.Bool("json", false, "Outputs results as JSON for piping into other programs")
 )
 
 func main() {
@@ -58,15 +59,21 @@ func main() {
 
 	products = api.GetBazaar()
 
-	PromptForInput()
+	if !*json && !*skip {
+		PromptForInput()
+	}
 
 	best := filterAndSortProducts(products.Products)
 
+	if *json {
+		internal.ExportJson(best, *priceLimit, *weeklySellLimit, *search, *MaxDisplayedItems)
+		return
+	}
 	displayResults(best)
 }
 
 func PromptForInput() {
-	if *priceLimit == 1e+32 && !*skip {
+	if *priceLimit == 1e+32 {
 		var temp string
 		huh.NewInput().Value(&temp).Title("Limit the maximum price").Run()
 		*priceLimit, err = strconv.ParseFloat(temp, 64)
@@ -75,7 +82,7 @@ func PromptForInput() {
 		}
 	}
 
-	if *weeklySellLimit == 1e+32 && !*skip {
+	if *weeklySellLimit == 1e+32 {
 		var temp string
 		huh.NewInput().Value(&temp).Title("Set the minimum amount of sold items in the las 7 days").Run()
 		*weeklySellLimit, err = strconv.ParseFloat(temp, 64)
@@ -84,7 +91,7 @@ func PromptForInput() {
 		}
 	}
 
-	if *search == "" && !*skip {
+	if *search == "" {
 		var suggestions []string
 		for id := range products.Products {
 			suggestions = append(suggestions, id)
@@ -127,28 +134,25 @@ func filterAndSortProducts(products map[string]api.Product) []api.Product {
 }
 
 // The great filter v2
-// BUG: Still apply the -limit and -sell flags when -search is used
+//
+// BUG: This is more bugged than I expected, gonna have to try some stuff
 func isProductEligible(p api.Product) bool {
+	log.Debug("Checking if product is eligible:", "product", p.ProductID, "limit", *priceLimit, "sell", *weeklySellLimit, "search", *search)
+
 	if *search != "" {
 		if !strings.Contains(strings.ToLower(p.ProductID), strings.ToLower(*search)) {
-			// log.Debug("Skipping", "id", p.ProductID, "search", *search)
-			// return (p.QuickStatus.BuyPrice < *priceLimit || *priceLimit == 1e+32) &&
-			// 	(float64(p.QuickStatus.SellMovingWeek) > *weeklySellLimit || *weeklySellLimit == 1e+32)
 			return false
 		}
-	}
-
-	if *search == "" {
-		return p.QuickStatus.BuyPrice > MinPrice &&
-			p.QuickStatus.SellPrice > MinPrice &&
-			p.QuickStatus.SellMovingWeek > MinWeeklyVolume &&
-			p.QuickStatus.BuyMovingWeek > MinWeeklyVolume &&
-			(p.QuickStatus.BuyPrice < *priceLimit || *priceLimit == 1e+32) &&
+		return (p.QuickStatus.BuyPrice < *priceLimit || *priceLimit == 1e+32) &&
 			(float64(p.QuickStatus.SellMovingWeek) > *weeklySellLimit || *weeklySellLimit == 1e+32)
 	}
 
-	return (p.QuickStatus.BuyPrice != 0) &&
-		(p.QuickStatus.SellPrice != 0)
+	return p.QuickStatus.BuyPrice > MinPrice &&
+		p.QuickStatus.SellPrice > MinPrice &&
+		p.QuickStatus.SellMovingWeek > MinWeeklyVolume &&
+		p.QuickStatus.BuyMovingWeek > MinWeeklyVolume &&
+		(p.QuickStatus.BuyPrice < *priceLimit || *priceLimit == 1e+32) &&
+		(float64(p.QuickStatus.SellMovingWeek) > *weeklySellLimit || *weeklySellLimit == 1e+32)
 }
 
 func displayResults(best []api.Product) {
