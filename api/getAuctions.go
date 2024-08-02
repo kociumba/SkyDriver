@@ -1,3 +1,4 @@
+// tags: auction
 package api
 
 import (

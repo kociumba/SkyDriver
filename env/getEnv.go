@@ -1,3 +1,4 @@
+// tags: env
 package env
 
 import (

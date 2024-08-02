@@ -18,4 +18,4 @@ run: b
 	./build/skyDriver $(if $(limit),-limit $(limit),) $(if $(sell),-sell $(sell),) $(if $(dbg),-dbg,) $(if $(search), -search $(search),) $(if $(skip),-skip,) $(if $(max), -max $(max),) $(if $(json),-json,)
 
 generate:
-	go run github.com/tc-hib/go-winres@latest make
+	go run github.com/tc-hib/go-winres@latest make --product-version=git-tag --file-version=git-tag

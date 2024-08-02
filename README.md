@@ -56,7 +56,13 @@ SkyDriver -limit 100000 -sell 100000
  
 ## Usage
 
-To use SkyDriver, download the latest release from the [releases](https://github.com/kociumba/SkyDriver/releases).
+To use SkyDriver, download the latest release from [releases](https://github.com/kociumba/SkyDriver/releases).
+
+> [!TIP]
+> If you have the latest version of [go](https://golang.org/doc/install) installed, you can run `go install -ldflags="-s -w" github.com/kociumba/ SkyDriver` to install SkyDriver and automatically add it to path.
+>
+> On windows the built binary will lack an icon and any other typical data when istalled this way.
+
 You can run SkyDriver to retrieve a list of the 10 products with the highest price differences, or use the `-limit` option to filter items within your flipping budget.
 
 Use the `-sell` option followed by the number of sales per week to filter out items with fewer sales than specified.
