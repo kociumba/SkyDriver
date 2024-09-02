@@ -26,10 +26,9 @@ $$f(x) = 100 \tanh(kx)$$
 $$f(x) = \frac{100x}{\sqrt{1 + kx^2}}$$
 
 **Piecewise Smoothing:**
-$$f(x) = \begin{cases}
-\frac{x}{(1 + (\frac{x}{100})^n)^{\frac{1}{n}}} & \text{if } x > 0 \
--\frac{-x}{(1 + (\frac{-x}{100})^n)^{\frac{1}{n}}} & \text{if } x \leq 0
-\end{cases}$$
+$$f(x) = \frac{x}{(1 + (\frac{x}{100})^n)^{\frac{1}{n}}} \text{ if } x > 0$$
+
+$$f(x) = -\frac{-x}{(1 + (\frac{-x}{100})^n)^{\frac{1}{n}}} \text{ if } x \leq 0$$
 
 Where $k$ and $n$ are adjustable parameters controlling the steepness of the function.
 
