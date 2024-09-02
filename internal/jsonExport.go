@@ -31,11 +31,12 @@ func ExportJson(products []api.Product, priceLimit, weeklySellLimit float64, sea
 	}
 
 	exportData := api.JsonExport{
-		Limit:  priceLimit,
-		Sell:   weeklySellLimit,
-		Search: search,
-		Max:    MaxDisplayedItems,
-		Date:   time.Now(),
+		Limit:     priceLimit,
+		Sell:      weeklySellLimit,
+		Search:    search,
+		Max:       MaxDisplayedItems,
+		Smoothing: CurrentSmoothingFunction.String(),
+		Date:      time.Now(),
 
 		Results: results,
 	}

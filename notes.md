@@ -11,6 +11,28 @@ If you do want to read the code for this it's in [internal/priceFluctuation](int
 
 This is how SkyDriver profit predictions without using historical bazaar data.
 
+Smoothing Functions
+Before applying the calculations, we now use smoothing functions to normalize the inputs. The current implementation allows for different smoothing functions:
+
+**No Smoothing:** Raw values are used without modification.
+
+**Sigmoid Smoothing:**
+$$f(x) = \frac{200}{1 + e^{-kx}} - 100$$
+
+**Tanh Smoothing:**
+$$f(x) = 100 \tanh(kx)$$
+
+**Saturating Smoothing:**
+$$f(x) = \frac{100x}{\sqrt{1 + kx^2}}$$
+
+**Piecewise Smoothing:**
+$$f(x) = \begin{cases}
+\frac{x}{(1 + (\frac{x}{100})^n)^{\frac{1}{n}}} & \text{if } x > 0 \
+-\frac{-x}{(1 + (\frac{-x}{100})^n)^{\frac{1}{n}}} & \text{if } x \leq 0
+\end{cases}$$
+
+Where $k$ and $n$ are adjustable parameters controlling the steepness of the function.
+
 - ### Price Spread $(PS)$
     $$PS = \frac{buyPrice - sellPrice}{sellPrice} \times 100$$
 
@@ -39,27 +61,13 @@ This is how SkyDriver profit predictions without using historical bazaar data.
 
     This measures the pressure from the visible orders.
 
-- ### Volume Factor (VF) *[New]*
+- ### Volume Factor (VF)
   
     $V_{total} = buyMovingWeek + sellMovingWeek$
 
+    Total volume:
     
-    1. **If the total volume is less than or equal to the low volume threshold  $V_{low}$**:
-
-        $$VF = -100$$
-
-    2. **If the total volume is greater than or equal to the high volume threshold $V_{high}$**:
-
-        $$VF = 100$$
-
-    3. **If the total volume is between the low volume threshold $V_{low}$ and the high volume threshold $V_{high}$**:
-    
-        $$VF = -100 + \left( \frac{V_{total} - V_{low}}{V_{high} - V_{low}} \right) \times 200$$
-  
-    Where:
-
-    $V_{low}$ is the low volume threshold
-    $V_{high}$ is the high volume threshold
+    $$VF = -100 + \left( \frac{V_{total} - V_{low}}{V_{high} - V_{low}} \right) \times 200$$
 
 - ### Profit Margin Factor Calculation $(PMF)$ *[New]*
 
@@ -69,24 +77,9 @@ This is how SkyDriver profit predictions without using historical bazaar data.
 
     $PM_{percentage} = \frac{PM}{sellPrice}$
 
-    Here are the different scenarios:
-
-    1. **If the profit margin percentage is less than or equal to the low profit margin threshold $PM_{low}$**:
+    Margin percentage:
    
-        $$PMF = -100$$
-
-    2. **If the profit margin percentage is greater than or equal to the high profit margin threshold $PM_{high}$**:
-   
-        $$PMF = 100$$
-
-    3. **If the profit margin percentage is between the low profit margin threshold $PM_{low}$ and the high profit margin threshold $PM_{high}$**:
-   
-        $$PMF = -100 + \left( \frac{PM_{percentage} - PM_{low}}{PM_{high} - PM_{low}} \right) \times 200$$
-
-    Where:
-
-    $PM_{low}$ is the low profitMargin threshold
-    $PM_{high}$ is the high profitMargin threshold
+    $$PMF = -100 + \left( \frac{PM_{percentage} - PM_{low}}{PM_{high} - PM_{low}} \right) \times 200$$
 
 - ### Price Prediction Formula
     Combine these factors with appropriate weights:

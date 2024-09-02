@@ -5,11 +5,12 @@ import (
 )
 
 type JsonExport struct {
-	Limit  float64   `json:"limit"`
-	Sell   float64   `json:"sell"`
-	Search string    `json:"search"`
-	Max    int       `json:"max"`
-	Date   time.Time `json:"date"`
+	Limit     float64   `json:"limit"`
+	Sell      float64   `json:"sell"`
+	Search    string    `json:"search"`
+	Max       int       `json:"max"`
+	Smoothing string    `json:"smoothing"`
+	Date      time.Time `json:"date"`
 
 	Results []Results `json:"results"`
 }

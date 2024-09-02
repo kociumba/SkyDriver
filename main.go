@@ -46,6 +46,7 @@ var (
 	skip              = flag.Bool("skip", false, "Skip the prompts\n\nI know what I'm doing 😎")
 	MaxDisplayedItems = flag.Int("max", 10, "Set the maximum number of items to display")
 	json              = flag.Bool("json", false, "Outputs results as JSON for piping into other programs")
+	smoothingFunc     = flag.String("smooth", "sigmoid", "Smoothing function to use (none, sigmoid, tanh, saturating, piecewise)")
 )
 
 func main() {
@@ -54,6 +55,22 @@ func main() {
 	// huh.NewInput().Suggestions(products).Value(&product).Run()
 
 	flag.Parse()
+
+	// defaults to sigmoid as it seems the best in testing
+	switch *smoothingFunc {
+	case "sigmoid":
+		internal.CurrentSmoothingFunction = internal.SigmoidSmoothing
+	case "tanh":
+		internal.CurrentSmoothingFunction = internal.TanhSmoothing
+	case "saturating":
+		internal.CurrentSmoothingFunction = internal.SaturatingSmoothing
+	case "piecewise":
+		internal.CurrentSmoothingFunction = internal.PiecewiseSmoothing
+	case "none":
+		internal.CurrentSmoothingFunction = internal.NoSmoothing
+	default:
+		internal.CurrentSmoothingFunction = internal.SigmoidSmoothing
+	}
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)
