@@ -17,15 +17,19 @@ Before applying the calculations, we now use smoothing functions to normalize th
 **No Smoothing:** Raw values are used without modification.
 
 **Sigmoid Smoothing:**
+
 $$f(x) = \frac{200}{1 + e^{-kx}} - 100$$
 
 **Tanh Smoothing:**
+
 $$f(x) = 100 \tanh(kx)$$
 
 **Saturating Smoothing:**
+
 $$f(x) = \frac{100x}{\sqrt{1 + kx^2}}$$
 
 **Piecewise Smoothing:**
+
 $$f(x) = \frac{x}{(1 + (\frac{x}{100})^n)^{\frac{1}{n}}} \text{ if } x > 0$$
 
 $$f(x) = -\frac{-x}{(1 + (\frac{-x}{100})^n)^{\frac{1}{n}}} \text{ if } x \leq 0$$
