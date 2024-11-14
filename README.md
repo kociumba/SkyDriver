@@ -84,6 +84,21 @@ The output is in a human readable format and ready for processing in tools like 
 > [!TIP]
 > The `-json` flag disables the prompts so you will have to set the parameters using other flags.
 
+**New in v0.0.7**
+
+The prediction output now uses smoothing functions to normalize the values. You can now choose between different smoothing functions using the `-smooth` flag:
+- `none`: Raw values without modification *(Skydriver experience before v0.0.7)*
+- `sigmoid`: Sigmoid function *(The default if no -smooth flag is passed in, seemd to give the best results)*
+- `tanh`: Hyperbolic tangent function
+- `saturating`: Saturating linear function
+- `piecewise`: Piecewise smoothing function
+
+All smoothing functions are documented in detail in [notes.md](notes.md).
+
+**New in v0.0.8**
+
+The app now uses a configuration file to store the prediction weights. The file is located in `~/.skydriver/config.toml` *That is `C:\Users\<username>\.skydriver\config.toml` for windows users*. Right now only the wights for the prediction are configurable but there are plans to add more, like for example themes.
+
 ## Examples
 
 ```console
