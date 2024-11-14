@@ -16,6 +16,7 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/charmbracelet/log"
 	"github.com/kociumba/SkyDriver/api"
+	"github.com/kociumba/SkyDriver/config"
 	"github.com/kociumba/SkyDriver/internal"
 	"github.com/kociumba/SkyDriver/styles"
 )
@@ -27,10 +28,9 @@ const (
 )
 
 var (
-	// best = make([]api.Product, 0, 10)
-
 	err error
 
+	cfg      *config.Config
 	products api.Bazaar
 
 	HeaderStyle = lipgloss.NewStyle().
@@ -48,6 +48,15 @@ var (
 	json              = flag.Bool("json", false, "Outputs results as JSON for piping into other programs")
 	smoothingFunc     = flag.String("smooth", "sigmoid", "Smoothing function to use (none, sigmoid, tanh, saturating, piecewise)")
 )
+
+func init() {
+	// Load configuration early
+	cfg, err = config.LoadConfig()
+	if err != nil {
+		log.Fatal("Failed to load configuration", "error", err)
+	}
+	internal.InitializeWithConfig(cfg)
+}
 
 func main() {
 	// env.LoadEnv()

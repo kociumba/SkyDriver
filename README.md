@@ -59,7 +59,7 @@ SkyDriver -limit 100000 -sell 100000
 To use SkyDriver, download the latest release from [releases](https://github.com/kociumba/SkyDriver/releases).
 
 > [!TIP]
-> If you have the latest version of [go](https://golang.org/doc/install) installed, you can run `go install -ldflags="-s -w" github.com/kociumba/ SkyDriver` to install SkyDriver and automatically add it to path.
+> If you have the latest version of [go](https://golang.org/doc/install) installed, you can run `go install -ldflags="-s -w" github.com/kociumba/SkyDriver` to install SkyDriver and automatically add it to path.
 >
 > On windows the built binary will lack an icon and any other typical data when istalled this way.
 
@@ -128,7 +128,7 @@ This command will display the top 100 items that have more than 100,000 sales pe
 **Q:** How do I [blank]? <br>
 **A:** If you are having trouble with using SkyDriver, read any 
 resource out there on cli apps and if you get past opening the app and your issues persists, 
-please [open an issue](https://github.com/kociumba/SkyDriver/issu.es/new/choose)
+please [open an issue](https://github.com/kociumba/SkyDriver/issues/new/choose)
 
 **Q:** What is the prediction? <br>
 **A:** The prediction comes from data collected through the bazaar API and helps you figure out if flipping an item will be profitable. If the prediction is positive, it means you're likely to make a profit; if it's negative, it's probably not worth it. The bigger the number, the higher the expected profit. Confidence shows how many of the seven internal indicators agree on whether the item will be profitable or not. For more info, check out the [model](notes.md)

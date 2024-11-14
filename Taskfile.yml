@@ -1,0 +1,74 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  APP_NAME: SkyDriver
+
+tasks:
+  build:
+    cmds:
+      - task: build:{{OS}}
+    silent: true
+
+  build:release:
+    cmds:
+      - task: build:{{OS}}
+        vars:
+          FLAGS: -ldflags="-s -w"
+    silent: true
+
+  # sets env vars to enable cross compilation
+  build:windows:
+    sources:
+      - "*.go"
+    generates:
+      - "build/{{.APP_NAME}}.exe"
+    env:
+      GOOS: windows
+      CGO_ENABLED: 0
+    cmds:
+      - task: go:generate
+      - task: pre:build
+      - go build -o build/{{.APP_NAME}}.exe {{.FLAGS}}
+      - echo | go env
+    silent: true
+
+  # sets env vars to enable cross compilation
+  build:linux:
+    sources:
+      - "*.go"
+    generates:
+      - "build/{{.APP_NAME}}"
+    env:
+      GOOS: linux
+      CGO_ENABLED: 0
+    cmds:
+      - task: pre:build
+      - go build -o build/{{.APP_NAME}} {{.FLAGS}}
+      - echo | go env
+    silent: true
+
+  go:generate:
+    sources:
+      - ./winres/*
+    generates:
+      - ./rsrc_windows_386.syso
+      - ./rsrc_windows_amd64.syso
+    cmds:
+      - go install github.com/tc-hib/go-winres@latest
+      - go generate
+
+  pre:build:
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  dev:tools:install:
+    cmds:
+      - go install github.com/tc-hib/go-winres@latest
+      - go install honnef.co/go/tools/cmd/staticcheck@latest
+
+  dev:tools:check:
+    cmds:
+      - staticcheck ./...

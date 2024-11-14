@@ -5,26 +5,16 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/kociumba/SkyDriver/api"
+	"github.com/kociumba/SkyDriver/config"
 )
 
-// Constants for weights - adjust these based on observed performance
-const (
-	w1 = 0.1428571429 // Weight for Price Spread
-	w2 = 0.1428571429 // Weight for Volume Imbalance
-	w3 = 0.1428571429 // Weight for Order Imbalance
-	w4 = 0.1428571429 // Weight for Moving Week Trend
-	w5 = 0.1428571429 // Weight for Top Order Book Pressure
-	w6 = 0.1428571429 // Weight for Volume Factor (new)
-	w7 = 0.1428571429 // Weight for Profit Margin Factor (new)
-
-	// w1 = 0.15 // Weight for Price Spread
-	// w2 = 0.15 // Weight for Volume Imbalance
-	// w3 = 0.15 // Weight for Order Imbalance
-	// w4 = 0.15 // Weight for Moving Week Trend
-	// w5 = 0.15 // Weight for Top Order Book Pressure
-	// w6 = 0.10 // Weight for Volume Factor (new)
-	// w7 = 0.15 // Weight for Profit Margin Factor (new)
+var (
+	cfg *config.Config
 )
+
+func InitializeWithConfig(config *config.Config) {
+	cfg = config
+}
 
 type SmoothingFunction int
 
@@ -94,6 +84,25 @@ func ApplySmoothing(x float64) float64 {
 	}
 }
 
+// Constants for weights - adjust these based on observed performance
+const (
+// w1 = 0.1428571429 // Weight for Price Spread
+// w2 = 0.1428571429 // Weight for Volume Imbalance
+// w3 = 0.1428571429 // Weight for Order Imbalance
+// w4 = 0.1428571429 // Weight for Moving Week Trend
+// w5 = 0.1428571429 // Weight for Top Order Book Pressure
+// w6 = 0.1428571429 // Weight for Volume Factor (new)
+// w7 = 0.1428571429 // Weight for Profit Margin Factor (new)
+
+// w1 = 0.15 // Weight for Price Spread
+// w2 = 0.15 // Weight for Volume Imbalance
+// w3 = 0.15 // Weight for Order Imbalance
+// w4 = 0.15 // Weight for Moving Week Trend
+// w5 = 0.15 // Weight for Top Order Book Pressure
+// w6 = 0.10 // Weight for Volume Factor (new)
+// w7 = 0.15 // Weight for Profit Margin Factor (new)
+)
+
 // PriceSpread calculates the percentage spread between buy and sell prices
 func PriceSpread(product api.Product) float64 {
 	return (product.QuickStatus.BuyPrice - product.QuickStatus.SellPrice) / product.QuickStatus.SellPrice * 100
@@ -150,7 +159,14 @@ func PredictPriceChange(product api.Product) (float64, float64) {
 	vf := ApplySmoothing(VolumeFactor(product))
 	pmf := ApplySmoothing(ProfitMarginFactor(product))
 
-	prediction := w1*ps + w2*vi + w3*oi + w4*mwt + w5*tobp + w6*vf + w7*pmf
+	weights := cfg.Prediction.Weights
+	prediction := weights.PriceSpread*ps +
+		weights.VolumeImbalance*vi +
+		weights.OrderImbalance*oi +
+		weights.MovingWeekTrend*mwt +
+		weights.OrderBookPressure*tobp +
+		weights.VolumeFactor*vf +
+		weights.ProfitMarginFactor*pmf
 
 	// Calculate confidence
 	sameSignCount := 0
@@ -172,7 +188,8 @@ func PredictPriceChange(product api.Product) (float64, float64) {
 		"movingWeekTrend", mwt,
 		"topOrderBookPressure", tobp,
 		"volumeFactor", vf,
-		"profitMarginFactor", pmf)
+		"profitMarginFactor", pmf,
+		"weights", weights)
 
 	return prediction, confidence
 }
