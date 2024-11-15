@@ -14,6 +14,8 @@ SkyDriver is a powerful command-line companion application for Hypixel Skyblock,
 1. Download the latest release from the [releases page](https://github.com/kociumba/SkyDriver/releases)
 2. Run SkyDriver in your terminal of choice to get started!
 
+For more detail, keep reading below.
+
 ## Installation Options
 
 ### Direct Download
@@ -26,7 +28,7 @@ go install -ldflags="-s -w" github.com/kociumba/SkyDriver
 ```
 
 > [!note]
-> On Windows, installing via `go install` will result in a binary without an icon and typical Windows metadata.
+> On Windows, installing via `go install` will result in an executable without an icon and typical Windows metadata.
 
 ## Basic Usage
 
@@ -49,6 +51,9 @@ SkyDriver provides a clean, table-based output showing bazaar opportunities:
 ╚═══════════════════════════════╩═════════╩════════╩══════════╩═══════════════════════════════╩════════════════════╝
 ```
 
+> [!note]
+> The output is normally colored but it's impossible to showcase this here without a screenshot.
+
 ## Command-Line Options
 
 ### Core Parameters
@@ -64,17 +69,17 @@ SkyDriver provides a clean, table-based output showing bazaar opportunities:
 
 ### Example Commands
 
-1. Search for specific items:
+1. Search for top 100 items containing "flawless" in their name:
 ```bash
 SkyDriver -search flawless -max 100
 ```
 
-2. Find high-volume trading opportunities:
+2. Find the top 100 items with a price under 10,000,000 and more than 100,000 sales per week:
 ```bash
 SkyDriver -limit 10000000 -sell 100000 -max 100
 ```
 
-3. Get JSON output for automation:
+3. Get JSON output for processing with tools like `jq`:
 ```bash
 SkyDriver -json -search flawless -max 100 | jq '.results | length'
 ```
@@ -83,23 +88,23 @@ SkyDriver -json -search flawless -max 100 | jq '.results | length'
 
 ### Table Columns
 
-- **Product**: Item name
+- **Product**: Item name(This is the internal hypixel api name, as I didn't implement a way to get the real names)
 - **SellPrice**: Current instant sell price
 - **BuyPrice**: Current instant buy price
-- **Difference**: Potential profit margin
-- **Weekly Traffic**: Trading volume data
-- **Predicted/Confidence**: Market prediction and confidence level
+- **Difference**: Simple difference between buy and sell prices
+- **Weekly Traffic**: Amounts of buys and sells from the last 7 days
+- **Predicted/Confidence**: Prediction of profitability and confidence level of the prediction
 
 ### Prediction System
 
 The prediction system helps evaluate potential profitability:
 
-- **Positive numbers**: Likely profitable
-- **Negative numbers**: Potentially risky
-- **Confidence percentage**: Agreement level among internal indicators
+- **Positive numbers**: Likely profitable - bigger numbers means higher predicted prifitability
+- **Negative numbers**: Potentially risky - bigger negative numbers means higher predicted unprofitability
+- **Confidence percentage**: Agreement level among 7 internal indicators, see [math](math.md) for more
 
 > [!warning]
-> **Important:** The prediction system should be used as one of many tools in your decision-making process, not as the sole indicator for trading decisions.
+> **Important:** The prediction model was made by me (a dumbass) and you should not rely on it. It will make some mistakes, so always use common sense before making any decisions.
 
 ## Filtering Behavior
 
@@ -113,13 +118,25 @@ By default, SkyDriver filters out items that have:
 ## Advanced Usage
 
 ### JSON Output
-Use the `-json` flag for programmatic access to data. The output follows a [defined schema](api/schema.json) and is compatible with tools like `jq`.
+Use the `-json` flag for programmatic access to data. The output follows a [defined schema](https://github.com/kociumba/SkyDriver/blob/main/api/schema.json) and is compatible with tools like `jq`.
+
+This allows for more complex filtering like for example:
+
+```bash
+SkyDriver -json -search flawless -max 2 | jq -r '.results[] | "\(.product_id), \((.prediction * 100 | round) / 100), \((.confidence * 100 | round) / 100)"'
+```
+
+Which outputs something like:
+```bash
+FLAWLESS_JASPER_GEM, 37.58, 71.43
+FLAWLESS_ONYX_GEM, 9.35, 57.14
+```
 
 > [!tip]
 > The `-json` flag automatically disables interactive prompts.
 
-### View All Items
-To see a complete list of bazaar items:
+### Miscellaneous Stuff
+To see a very long list of all the items on the bazaar run this command:
 ```bash
 SkyDriver -max 10000000
 ```
@@ -127,13 +144,13 @@ SkyDriver -max 10000000
 ## Getting Help
 
 If you encounter issues:
-1. Review this documentation
-2. Check common CLI usage patterns
-3. [Open an issue](https://github.com/kociumba/SkyDriver/issues/new/choose) if problems persist
+1. Read up on CLI tools and how they work
+2. Read these [docs](index.md) under the #user-guide tag, they should contain anwsers to most of your questions
+3. [Open an issue](https://github.com/kociumba/SkyDriver/issues/new/choose) if your problems persist
 
 ## Mathematical Model
 
-The prediction system uses seven internal indicators to evaluate market conditions. For detailed information about the mathematical model and its components, see our [[math|Mathematical Model]] page.
-
-> [!tip]
-> Remember that market conditions can change rapidly. Always verify predictions against current market conditions and your own research.
+The prediction system uses seven internal indicators to evaluate the bazaar info. For detailed information about the mathematical model and its components, see our [math](math.md) page.
+.
+> [!important]
+> Once again I am not a mathematician and the prediction model will make some mistakes. Always use common sense before flipping.
