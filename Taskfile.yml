@@ -21,9 +21,9 @@ tasks:
   # sets env vars to enable cross compilation
   build:windows:
     sources:
-      - "*.go"
+      - './../*.go'
     generates:
-      - "build/{{.APP_NAME}}.exe"
+      - 'build/{{.APP_NAME}}.exe'
     env:
       GOOS: windows
       CGO_ENABLED: 0
@@ -37,9 +37,9 @@ tasks:
   # sets env vars to enable cross compilation
   build:linux:
     sources:
-      - "*.go"
+      - './../*.go'
     generates:
-      - "build/{{.APP_NAME}}"
+      - 'build/{{.APP_NAME}}'
     env:
       GOOS: linux
       CGO_ENABLED: 0
@@ -72,11 +72,3 @@ tasks:
   dev:tools:check:
     cmds:
       - staticcheck ./...
-
-  docs:push:
-    cmds:
-      - cd docs
-      - git add .
-      - git commit -m "Update docs"
-      - git push origin docs
-      - cd ..

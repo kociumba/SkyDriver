@@ -28,3 +28,4 @@ go.work
 /rsrc_windows_amd64.syso
 out.json
 /build/SkyDriver*
+todo.md

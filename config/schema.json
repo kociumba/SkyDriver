@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkyDriver Configuration",
+  "description": "Configuration schema for SkyDriver bazaar analysis tool",
+  "type": "object",
+  "required": ["prediction"],
+  "properties": {
+    "prediction": {
+      "type": "object",
+      "required": ["weights"],
+      "properties": {
+        "weights": {
+          "type": "object",
+          "required": [
+            "price_spread",
+            "volume_imbalance",
+            "order_imbalance",
+            "moving_week_trend",
+            "order_book_pressure",
+            "volume_factor",
+            "profit_margin_factor"
+          ],
+          "properties": {
+            "price_spread": {
+              "type": "number",
+              "description": "Weight for the difference between buy and sell prices",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "volume_imbalance": {
+              "type": "number",
+              "description": "Weight for the imbalance between buy and sell volumes",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "order_imbalance": {
+              "type": "number",
+              "description": "Weight for the imbalance between buy and sell orders",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "moving_week_trend": {
+              "type": "number",
+              "description": "Weight for the moving week trend analysis",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "order_book_pressure": {
+              "type": "number",
+              "description": "Weight for the order book pressure analysis",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "volume_factor": {
+              "type": "number",
+              "description": "Weight for the trading volume factor",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "profit_margin_factor": {
+              "type": "number",
+              "description": "Weight for the potential profit margin factor",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
