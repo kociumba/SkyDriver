@@ -1,0 +1,16 @@
+# https://taskfile.dev
+
+version: "3"
+
+tasks:
+  docs:push:
+    cmds:
+      - npx quartz sync
+
+  docs:serve:
+    cmds:
+      - npx quartz build --serve
+
+  docs:build:
+    cmds:
+      - npx quartz build

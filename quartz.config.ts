@@ -17,7 +17,7 @@ const config: QuartzConfig = {
     },
     locale: "en-US",
     // github pages url
-    baseUrl: "skydriver.github.io/skydriver/",
+    baseUrl: "kociumba.github.io/SkyDriver/",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "created",
     generateSocialImages: true,
@@ -27,7 +27,8 @@ const config: QuartzConfig = {
       typography: {
         header: "Schibsted Grotesk",
         body: "Source Sans Pro",
-        code: "IBM Plex Mono",
+        // code: "IBM Plex Mono",
+        code: "Cascadia code NF",
       },
       colors: {
         lightMode: {
