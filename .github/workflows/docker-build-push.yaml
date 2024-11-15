@@ -2,10 +2,10 @@ name: Docker build & push image
 
 on:
   push:
-    branches: [docs]
+    branches: [v4]
     tags: ["v*"]
   pull_request:
-    branches: [docs]
+    branches: [v4]
     paths:
       - .github/workflows/docker-build-push.yaml
       - quartz/**

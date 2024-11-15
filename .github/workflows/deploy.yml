@@ -3,7 +3,7 @@ name: Deploy docs
 on:
   push:
     branches:
-      - docs
+      - v4
 
 permissions:
   contents: read
