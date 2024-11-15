@@ -1,3 +1,17 @@
 @use "./base.scss";
 
 // put your custom CSS here!
+
+// :where(:root) {
+//   background: var(--light);
+//   background-image:
+//     radial-gradient(circle at top left, rgba(64 23 160 / 0.27) 0%, transparent 40%),
+//     linear-gradient(45deg, rgba(var(--secondary), 0.1) 0%, rgba(var(--tertiary), 0.1) 100%),
+//     linear-gradient(to right, var(--light) 0%, var(--lightgray) 100%);
+//   background-size: 100% 100%, 100% 100%, 100% 100%;
+//   background-position: 0 0, 0 0, 0 0;
+//   background-repeat: no-repeat;
+//   backdrop-filter: blur(10px) saturate(180%);
+//   -webkit-backdrop-filter: blur(10px) saturate(180%);
+// }
+

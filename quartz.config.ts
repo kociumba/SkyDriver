@@ -13,11 +13,11 @@ const config: QuartzConfig = {
     enableSPA: true,
     enablePopovers: true,
     analytics: {
-      provider: "plausible",
+        provider: "plausible",
     },
     locale: "en-US",
     // github pages url
-    baseUrl: "kociumba.github.io/SkyDriver/",
+    baseUrl: "kociumba.github.io/SkyDriver",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "created",
     generateSocialImages: true,
