@@ -1,149 +1,118 @@
 ---
-title: The math behind SkyDriver
+title: The Math
 draft: false
 tags:
-  - config
   - internals
 ---
 
+# The Math Behind SkyDriver 🧮
 
-## Technical notes on math used in SkyDriver
+*This document is just a a summary of [notes.md](https://github.com/kociumba/SkyDriver/blob/main/notes.md)*
 
-> [!NOTE]
-> This is just a slightly differently formatted version of [notes.md](https://github.com/kociumba/SkyDriver/blob/main/notes.md)
+> [!warning]
+> Math ahead! If you just want to use SkyDriver, you can skip this. But if you're curious how the predictions work, read on!
 
-These notes are public because I frankly suck at math and it's much easier for non coders to spot math problems
-in this format than in code.
+> [!note]
+> Found a problem with the math? Please [report it](https://github.com/kociumba/SkyDriver/issues/new/choose)! I'm not a mathematician, so there might be mistakes.
 
-**In other words if I fucked something up here please report it in [issues](https://github.com/kociumba/SkyDriver/issues/new/choose).**
+## Overview
 
-If you do want to read the code for this it's in [internal/priceFluctuation](https://github.com/kociumba/SkyDriver/blob/main/internal/priceFluctuation.go)
+SkyDriver uses several indicators to predict if an item will be profitable to flip. Each indicator looks at different aspects of the market, and they work together to give us a prediction.
 
-### Price Prediction Math
+## Smoothing Functions
 
-This is how SkyDriver profit predictions without using historical bazaar data.
+We smooth out the results of the other calculations to make them more manageable. We have a few ways to do this:
 
-Smoothing Functions
-Before applying the calculations, we now use smoothing functions to normalize the inputs. The current implementation allows for different smoothing functions:
+### No Smoothing
+Just use the raw numbers (boring but sometimes useful)
 
----
+### Sigmoid Smoothing
+$$f(x) = \frac{200}{1 + e^{-kx}} - 100$$
 
-- **No Smoothing:** Raw values are used without modification.
+### Tanh Smoothing
+$$f(x) = 100 \tanh(kx)$$
 
----
+### Saturating Smoothing
+$$f(x) = \frac{100x}{\sqrt{1 + kx^2}}$$
 
-- **Sigmoid Smoothing:**
+### Piecewise Smoothing
+For x > 0:
+$$f(x) = \frac{x}{(1 + (\frac{x}{100})^n)^{\frac{1}{n}}}$$
 
-    $$f(x) = \frac{200}{1 + e^{-kx}} - 100$$
+For x ≤ 0:
+$$f(x) = -\frac{-x}{(1 + (\frac{-x}{100})^n)^{\frac{1}{n}}}$$
 
----
-
-- **Tanh Smoothing:**
-
-    $$f(x) = 100 \tanh(kx)$$
-
----
-
-- **Saturating Smoothing:**
-
-    $$f(x) = \frac{100x}{\sqrt{1 + kx^2}}$$
+> [!note]
+> $k$ and $n$ control how aggressive the smoothing is
 
 ---
 
-- **Piecewise Smoothing:**
+## Market Indicators
 
-    $$f(x) = \frac{x}{(1 + (\frac{x}{100})^n)^{\frac{1}{n}}} \text{ if } x > 0$$
+### 1. Price Spread (PS)
+How different the buy and sell prices are:
 
-    $$f(x) = -\frac{-x}{(1 + (\frac{-x}{100})^n)^{\frac{1}{n}}} \text{ if } x \leq 0$$
+$$PS = \frac{buyPrice - sellPrice}{sellPrice} \times 100$$
 
+### 2. Volume Imbalance (VI)
+Are more buys or sells going through?
 
-Where $k$ and $n$ are adjustable parameters controlling the steepness of the function.
+$$VI = \frac{buyVolume - sellVolume}{buyVolume + sellVolume} \times 100$$
 
----
+### 3. Order Imbalance (OI)
+Are there more buy orders than sell orders?
 
- - ### Price Spread $(PS)$
-    $$PS = \frac{buyPrice - sellPrice}{sellPrice} \times 100$$
+$$OI = \frac{buyOrders - sellOrders}{buyOrders + sellOrders} \times 100$$
 
-    This gives us the percentage spread between the buy and sell prices.
-    This calculation assumes that the user will be flipping sell and buy orders.
+### 4. Moving Week Trend (MWT)
+What's been happening over the last week:
 
----
+$$MWT = \frac{buyMovingWeek - sellMovingWeek}{buyMovingWeek + sellMovingWeek} \times 100$$
 
-- ### Volume Imbalance $(VI)$
-    $$VI = \frac{buyVolume - sellVolume}{buyVolume + sellVolume} \times 100$$
+### 5. Top Order Book Pressure (TOBP)
+Looking at the top 30 orders:
 
-    This measures the imbalance between buy and sell volumes.
+$$TOBP = \frac{\sum_{i=1}^{30} (buyAmount_i \times buyPrice_i) - \sum_{i=1}^{30} (sellAmount_i \times sellPrice_i)}{\sum_{i=1}^{30} (buyAmount_i \times buyPrice_i) + \sum_{i=1}^{30} (sellAmount_i \times sellPrice_i)} \times 100$$
 
----
+### 6. Volume Factor (VF)
+How much trading is happening:
 
-- ### Order Imbalance $(OI)$
-    $$OI = \frac{buyOrders - sellOrders}{buyOrders + sellOrders} \times 100$$
+$V_{total} = buyMovingWeek + sellMovingWeek$
 
-    This measures the imbalance between the number of buy and sell orders.
+$$VF = -100 + \left( \frac{V_{total} - V_{low}}{V_{high} - V_{low}} \right) \times 200$$
 
----
+### 7. Profit Margin Factor (PMF)
+How much profit you might make:
 
-- ### Moving Week Trend $(MWT)$
-    $$MWT = \frac{buyMovingWeek - sellMovingWeek}{buyMovingWeek + sellMovingWeek} \times 100$$
+$PM = sellPrice - buyPrice$
 
-    This gives us a sense of the longer-term trend based on the past week's activity.
+$PM_{percentage} = \frac{PM}{sellPrice}$
 
----
-
-- ### Top Order Book Pressure $(TOBP)$
-    Using the top 30 orders from buy_summary and sell_summary:
-
-    $$TOBP = \frac{\sum_{i=1}^{30} (buyAmount_i \times buyPrice_i) - \sum_{i=1}^{30} (sellAmount_i \times sellPrice_i)}{\sum_{i=1}^{30} (buyAmount_i \times buyPrice_i) + \sum_{i=1}^{30} (sellAmount_i \times sellPrice_i)} \times 100$$
-
-    This measures the pressure from the visible orders.
+$$PMF = -100 + \left( \frac{PM_{percentage} - PM_{low}}{PM_{high} - PM_{low}} \right) \times 200$$
 
 ---
 
-- ### Volume Factor (VF)
-  
-    $V_{total} = buyMovingWeek + sellMovingWeek$
+## Putting It All Together
 
-    Total volume:
-    
-    $$VF = -100 + \left( \frac{V_{total} - V_{low}}{V_{high} - V_{low}} \right) \times 200$$
-
----
-
-- ### Profit Margin Factor Calculation $(PMF)$
-
-    The profit margin factor $PMF$ is calculated based on the profit margin as a percentage of the sell price.
-
-    $PM = sellPrice - buyPrice$
-
-    $PM_{percentage} = \frac{PM}{sellPrice}$
-
-    Margin percentage:
-   
-    $$PMF = -100 + \left( \frac{PM_{percentage} - PM_{low}}{PM_{high} - PM_{low}} \right) \times 200$$
-
----
-
-### Price Prediction Formula
-
-Combine these factors with appropriate weights:
+### The Final Prediction
+We combine all these indicators with different weights:
 
 $$P_{pred} = w_1 \times PS + w_2 \times VI + w_3 \times OI + w_4 \times MWT + w_5 \times TOBP + w_6 \times VF + w_7 \times PMF$$
 
-Where $w_1$, $w_2$, $w_3$, $w_4$, $w_5$, $w_6$, and $w_7$ are weights that sum to 1.
+Where all the weights ($w_1$ through $w_7$) add up to 1.
 
-### Interpretation
+> [!note]
+> The weights are configurable in the [[config|Config]] if you want to change how the predictions are weighted
 
-A positive $P_{pred}$ suggests a potential price increase.
+### What The Numbers Mean
+- Positive number = Probably profitable
+- Negative number = Probably not profitable
+- Higher % = Stronger prediction
 
-A negative $P_{pred}$ suggests a potential price decrease.
+### Confidence Score
+We also calculate how confident we are in the prediction:
 
-The magnitude of $P_{pred}$ indicates the strength of the prediction.
+$$Confidence = \frac{\text{Number of indicators agreeing with prediction}}{7} \times 100$$
 
-
-### Confidence Measure
-
-We can create a simple confidence measure based on the consistency of our indicators:
-
-$$Confidence = \frac{\text{Number of indicators with the same sign as } P_{pred}}{7} \times 100$$
-
-This gives us a percentage confidence in our prediction.
+> [!tip]
+> Want to see how this works in code? Check out [internal/priceFluctuation](https://github.com/kociumba/SkyDriver/blob/main/internal/priceFluctuation.go)

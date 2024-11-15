@@ -151,6 +151,5 @@ If you encounter issues:
 ## Mathematical Model
 
 The prediction system uses seven internal indicators to evaluate the bazaar info. For detailed information about the mathematical model and its components, see our [math](math.md) page.
-.
 > [!important]
 > Once again I am not a mathematician and the prediction model will make some mistakes. Always use common sense before flipping.
