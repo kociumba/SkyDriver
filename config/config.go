@@ -60,9 +60,9 @@ func LoadConfig() (*Config, error) {
 	// Check if config file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		// Create default config file with comments
-		defaultConfigContent := `# SkyDriver Configuration File
+		defaultConfigContent := `#:schema https://raw.githubusercontent.com/kociumba/SkyDriver/main/config/schema.json
+# SkyDriver Configuration File
 # Located in ~/.skydriver/config.toml
-# Schema: https://raw.githubusercontent.com/kociumba/SkyDriver/main/config/schema.json
 
 # Prediction weights configuration
 # All weights should sum to approximately 1.0
